@@ -10,6 +10,7 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/nginx/nginx-prometheus-exporter?logo=docker&logoColor=white)](https://hub.docker.com/r/nginx/nginx-prometheus-exporter)
 ![Docker Image Size (latest semver)](https://img.shields.io/docker/image-size/nginx/nginx-prometheus-exporter?logo=docker&logoColor=white&sort=semver)
 [![Slack](https://img.shields.io/badge/slack-%23nginx--prometheus--exporter-green?logo=slack)](https://nginxcommunity.slack.com/channels/nginx-prometheus-exporter)
+[![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 
 # NGINX Prometheus Exporter
 
@@ -55,7 +56,7 @@ To start the exporter we use the [docker run](https://docs.docker.com/engine/ref
 - To export NGINX metrics, run:
 
     ```console
-    docker run -p 9113:9113 nginx/nginx-prometheus-exporter:0.10.0 -nginx.scrape-uri=http://<nginx>:8080/stub_status
+    docker run -p 9113:9113 nginx/nginx-prometheus-exporter:0.10.0 --nginx.scrape-uri=http://<nginx>:8080/stub_status
     ```
 
     where `<nginx>` is the IP address/DNS name, through which NGINX is available.
@@ -63,7 +64,7 @@ To start the exporter we use the [docker run](https://docs.docker.com/engine/ref
 - To export NGINX Plus metrics, run:
 
     ```console
-    docker run -p 9113:9113 nginx/nginx-prometheus-exporter:0.10.0 -nginx.plus -nginx.scrape-uri=http://<nginx-plus>:8080/api
+    docker run -p 9113:9113 nginx/nginx-prometheus-exporter:0.10.0 --nginx.plus --nginx.scrape-uri=http://<nginx-plus>:8080/api
     ```
 
     where `<nginx-plus>` is the IP address/DNS name, through which NGINX Plus is available.
@@ -73,7 +74,7 @@ To start the exporter we use the [docker run](https://docs.docker.com/engine/ref
 - To export NGINX metrics, run:
 
     ```console
-    nginx-prometheus-exporter -nginx.scrape-uri=http://<nginx>:8080/stub_status
+    nginx-prometheus-exporter --nginx.scrape-uri=http://<nginx>:8080/stub_status
     ```
 
     where `<nginx>` is the IP address/DNS name, through which NGINX is available.
@@ -81,21 +82,21 @@ To start the exporter we use the [docker run](https://docs.docker.com/engine/ref
 - To export NGINX Plus metrics:
 
     ```console
-    nginx-prometheus-exporter -nginx.plus -nginx.scrape-uri=http://<nginx-plus>:8080/api
+    nginx-prometheus-exporter --nginx.plus --nginx.scrape-uri=http://<nginx-plus>:8080/api
     ```
 
     where `<nginx-plus>` is the IP address/DNS name, through which NGINX Plus is available.
 
-- To export and scrape NGINX metrics with unix domain sockets, run:
+- To scrape NGINX metrics with unix domain sockets, run:
 
     ```console
-    nginx-prometheus-exporter -nginx.scrape-uri=unix:<nginx>:/stub_status -web.listen-address=unix:/path/to/socket.sock
+    nginx-prometheus-exporter --nginx.scrape-uri=unix:<nginx>:/stub_status
     ```
 
     where `<nginx>` is the path to unix domain socket, through which NGINX stub status is available.
 
-**Note**. The `nginx-prometheus-exporter` is not a daemon. To run the exporter as a system service (daemon), configure
-the init system of your Linux server (such as systemd or Upstart) accordingly. Alternatively, you can run the exporter
+**Note**. The `nginx-prometheus-exporter` is not a daemon. To run the exporter as a system service (daemon), you can
+follow the example in [examples/systemd](./examples/systemd/README.md). Alternatively, you can run the exporter
 in a Docker container.
 
 ## Usage
@@ -103,40 +104,30 @@ in a Docker container.
 ### Command-line Arguments
 
 ```console
-Usage of ./nginx-prometheus-exporter:
-  -nginx.plus
-        Start the exporter for NGINX Plus. By default, the exporter is started for NGINX. The default value can be overwritten by NGINX_PLUS environment variable.
-  -nginx.retries int
-        A number of retries the exporter will make on start to connect to the NGINX stub_status page/NGINX Plus API before exiting with an error. The default value can be overwritten by NGINX_RETRIES environment variable.
-  -nginx.retry-interval duration
-        An interval between retries to connect to the NGINX stub_status page/NGINX Plus API on start. The default value can be overwritten by NGINX_RETRY_INTERVAL environment variable. (default 5s)
-  -nginx.scrape-uri string
-        A URI or unix domain socket path for scraping NGINX or NGINX Plus metrics.
-        For NGINX, the stub_status page must be available through the URI. For NGINX Plus -- the API. The default value can be overwritten by SCRAPE_URI environment variable. (default "http://127.0.0.1:8080/stub_status")
-  -nginx.ssl-ca-cert string
-        Path to the PEM encoded CA certificate file used to validate the servers SSL certificate. The default value can be overwritten by SSL_CA_CERT environment variable.
-  -nginx.ssl-client-cert string
-        Path to the PEM encoded client certificate file to use when connecting to the server. The default value can be overwritten by SSL_CLIENT_CERT environment variable.
-  -nginx.ssl-client-key string
-        Path to the PEM encoded client certificate key file to use when connecting to the server. The default value can be overwritten by SSL_CLIENT_KEY environment variable.
-  -nginx.ssl-verify
-        Perform SSL certificate verification. The default value can be overwritten by SSL_VERIFY environment variable. (default true)
-  -nginx.timeout duration
-        A timeout for scraping metrics from NGINX or NGINX Plus. The default value can be overwritten by TIMEOUT environment variable. (default 5s)
-  -prometheus.const-labels value
-        A comma separated list of constant labels that will be used in every metric. Format is label1=value1,label2=value2... The default value can be overwritten by CONST_LABELS environment variable.
-  -web.listen-address string
-        An address or unix domain socket path to listen on for web interface and telemetry. The default value can be overwritten by LISTEN_ADDRESS environment variable. (default ":9113")
-  -web.telemetry-path string
-        A path under which to expose metrics. The default value can be overwritten by TELEMETRY_PATH environment variable. (default "/metrics")
-  -web.secured-metrics
-        Expose metrics using https. The default value can be overwritten by SECURED_METRICS variable.  (default false)
-  -web.ssl-server-cert string
-        Path to the PEM encoded certificate for the nginx-exporter metrics server(when web.secured-metrics=true). The default value can be overwritten by SSL_SERVER_CERT variable.
-  -web.ssl-server-key string
-        Path to the PEM encoded key for the nginx-exporter metrics server (when web.secured-metrics=true). The default value can be overwritten by SSL_SERVER_KEY variable.
-  -version
-        Display the NGINX exporter version. (default false)
+usage: nginx-prometheus-exporter [<flags>]
+
+
+Flags:
+  -h, --[no-]help                Show context-sensitive help (also try --help-long and --help-man).
+      --web.listen-address=:9113 ...
+                                 Addresses on which to expose metrics and web interface. Repeatable for multiple addresses.
+      --web.config.file=""       [EXPERIMENTAL] Path to configuration file that can enable TLS or authentication. See: https://github.com/prometheus/exporter-toolkit/blob/master/docs/web-configuration.md
+      --web.telemetry-path="/metrics"
+                                 Path under which to expose metrics. ($TELEMETRY_PATH)
+      --[no-]nginx.plus          Start the exporter for NGINX Plus. By default, the exporter is started for NGINX. ($NGINX_PLUS)
+      --nginx.scrape-uri="http://127.0.0.1:8080/stub_status"
+                                 A URI or unix domain socket path for scraping NGINX or NGINX Plus metrics. For NGINX, the stub_status page must be available through the URI. For NGINX Plus -- the API.
+      --[no-]nginx.ssl-verify    Perform SSL certificate verification. ($SSL_VERIFY)
+      --nginx.ssl-ca-cert=""     Path to the PEM encoded CA certificate file used to validate the servers SSL certificate. ($SSL_CA_CERT)
+      --nginx.ssl-client-cert=""
+                                 Path to the PEM encoded client certificate file to use when connecting to the server. ($SSL_CLIENT_CERT)
+      --nginx.ssl-client-key=""  Path to the PEM encoded client certificate key file to use when connecting to the server. ($SSL_CLIENT_KEY)
+      --nginx.timeout=5s         A timeout for scraping metrics from NGINX or NGINX Plus. ($TIMEOUT)
+      --prometheus.const-label=PROMETHEUS.CONST-LABEL ...
+                                 Label that will be used in every metric. Format is label=value. It can be repeated multiple times. ($CONST_LABELS)
+      --log.level=info           Only log messages with the given severity or above. One of: [debug, info, warn, error]
+      --log.format=logfmt        Output format of log messages. One of: [logfmt, json]
+      --[no-]version             Show application version.
 ```
 
 ## Exported Metrics

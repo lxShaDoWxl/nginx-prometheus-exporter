@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.0
+
+A list of changes can be found on Github at: [Release v1.0.0](https://github.com/nginxinc/nginx-prometheus-exporter/releases/tag/v1.0.0)
+
 ## 0.11.0
 
 A list of changes can be found on Github at: [Release v0.11.0](https://github.com/nginxinc/nginx-prometheus-exporter/releases/tag/v0.11.0)
