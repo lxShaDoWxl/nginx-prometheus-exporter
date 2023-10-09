@@ -6,6 +6,7 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
+	unitclient "github.com/nginxinc/nginx-prometheus-exporter/client/unit"
 	"net"
 	"net/http"
 	"os"
@@ -101,7 +102,8 @@ var (
 	webConfig     = kingpinflag.AddFlags(kingpin.CommandLine, ":9113")
 	metricsPath   = kingpin.Flag("web.telemetry-path", "Path under which to expose metrics.").Default("/metrics").Envar("TELEMETRY_PATH").String()
 	nginxPlus     = kingpin.Flag("nginx.plus", "Start the exporter for NGINX Plus. By default, the exporter is started for NGINX.").Default("false").Envar("NGINX_PLUS").Bool()
-	scrapeURI     = kingpin.Flag("nginx.scrape-uri", "A URI or unix domain socket path for scraping NGINX or NGINX Plus metrics. For NGINX, the stub_status page must be available through the URI. For NGINX Plus -- the API.").Default("http://127.0.0.1:8080/stub_status").String()
+	nginxUnit     = kingpin.Flag("nginx.unit", "Start the exporter for NGINX Unit. By default, the exporter is started for NGINX.").Default("false").Envar("NGINX_UNIT").Bool()
+	scrapeURI     = kingpin.Flag("nginx.scrape-uri", "A URI or unix domain socket path for scraping NGINX, NGINX Plus, NGINX Unit metrics. For NGINX, the stub_status page must be available through the URI. For NGINX Plus -- the API.").Default("http://127.0.0.1:8080/stub_status").String()
 	sslVerify     = kingpin.Flag("nginx.ssl-verify", "Perform SSL certificate verification.").Default("false").Envar("SSL_VERIFY").Bool()
 	sslCaCert     = kingpin.Flag("nginx.ssl-ca-cert", "Path to the PEM encoded CA certificate file used to validate the servers SSL certificate.").Default("").Envar("SSL_CA_CERT").String()
 	sslClientCert = kingpin.Flag("nginx.ssl-client-cert", "Path to the PEM encoded client certificate file to use when connecting to the server.").Default("").Envar("SSL_CLIENT_CERT").String()
@@ -204,6 +206,15 @@ func main() {
 		}
 		variableLabelNames := collector.NewVariableLabelNames(nil, nil, nil, nil, nil, nil)
 		prometheus.MustRegister(collector.NewNginxPlusCollector(plusClient.(*plusclient.NginxClient), "nginxplus", variableLabelNames, constLabels, logger))
+	} else if *nginxUnit {
+		ossClient, err := createClientWithRetries(func() (interface{}, error) {
+			return unitclient.NewNginxClient(httpClient, *scrapeURI)
+		}, *nginxRetries, *nginxRetryInterval, logger)
+		if err != nil {
+			level.Error(logger).Log("msg", "Could not create Nginx Client", "error", err.Error())
+			os.Exit(1)
+		}
+		prometheus.MustRegister(collector.NewNginxUnitCollector(ossClient.(*unitclient.NginxClient), "nginxunit", constLabels, logger))
 	} else {
 		ossClient, err := createClientWithRetries(func() (interface{}, error) {
 			return client.NewNginxClient(httpClient, *scrapeURI)
