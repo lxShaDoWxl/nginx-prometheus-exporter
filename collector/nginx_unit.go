@@ -78,6 +78,8 @@ func (c *NginxUnitCollector) Collect(ch chan<- prometheus.Metric) {
 		prometheus.GaugeValue, float64(stats.Connections.Idle))
 	ch <- prometheus.MustNewConstMetric(c.metrics["connections_closed"],
 		prometheus.CounterValue, float64(stats.Connections.Closed))
+	ch <- prometheus.MustNewConstMetric(c.metrics["http_requests_total"],
+		prometheus.CounterValue, float64(stats.Requests.Total))
 	for s, application := range stats.Applications {
 		ch <- prometheus.MustNewConstMetric(c.applicationMetrics["processes_running"],
 			prometheus.GaugeValue, float64(application.Processes.Running), s)
